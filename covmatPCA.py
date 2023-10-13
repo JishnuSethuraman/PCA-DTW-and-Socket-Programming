@@ -41,10 +41,6 @@ for sensor, data in sensor_data.items(): #process each sensor type
         data_centered = data_array - np.mean(data_array)
     else:
         data_centered = data_array - np.mean(data_array, axis=1, keepdims=True)
-    if data_array.ndim > 1:  #if data_array has more than 1 dimension
-        data_centered = data_array - np.mean(data_array, axis=1, keepdims=True)
-    else:
-        data_centered = data_array - np.mean(data_array)
     if data_centered.size > 0:
         if np.unique(data_centered).size > 1:
             cov_matrix = np.cov(data_centered)
