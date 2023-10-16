@@ -15,8 +15,7 @@ def receive_data():
     data = request.json
     data_buffer.append(data)
 
-    # Buffer
-    if len(data_buffer) >= BATCH_SIZE:
+    if len(data_buffer) >= BATCH_SIZE: #buffer
         save_to_csv(data_buffer)
         data_buffer.clear()
 
