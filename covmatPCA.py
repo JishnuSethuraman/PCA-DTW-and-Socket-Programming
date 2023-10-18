@@ -39,41 +39,90 @@ for sensor_name, data in sensor_data.items():
 
 WINDOW_SIZE = 10
 
-def create_windows(data, window_size): #create fixed windows from time series
-    return [data[i:i+window_size] for i in range(len(data) - window_size + 1)]
+def create_windows(data, window_size):
+    return [data[i:i+window_size] for i in range(0, len(data), window_size)]
 
-windowed_sensor_data = {sensor: create_windows(data, WINDOW_SIZE) for sensor, data in sensor_data.items()} #applying the function on sensor data
-
-
-def plot_pca(sensor_name, data, windows):
-    if not data or len(data[0]) <= 1:  # Check if data is empty or not 2D
-        return  # If so, skip the plotting for this sensor
-    
-    pca = PCA(n_components=2)
+# Function to apply PCA and return the transformed data and explained variance
+def apply_pca(data):
+    pca = PCA(n_components=2)  # We're using 2 components for visualization
     transformed_data = pca.fit_transform(data)
+    explained_variance = pca.explained_variance_ratio_
+    return transformed_data, explained_variance
 
-    # Get the first window of this sensor
-    first_window = windows[sensor_name][0]
+# Main process function for section 2.2
+def process_sensor_data(sensor_data):
+    window_size = 10  # Size of each data window
 
-    # Get the PCA transformation of the first window
-    first_window_transformed = pca.transform(first_window)
+    # Store the PCA results: the transformed windows and the variance explained
+    pca_results = {}
+    print("Debug: Starting the visualization process...")  # Debug statement
+    for sensor_type, data in sensor_data.items():
+        
+        if not data:
+            continue  # Skip if no data for this sensor type
 
-    print(first_window_transformed)
-    
-    # Retrieve the first two principal components of the first window
-    pc1, pc2 = first_window_transformed[0]
+        windows = create_windows(data, window_size)
 
-    # Plotting
-    plt.figure(figsize=(10, 6))
-    plt.scatter(transformed_data[:, 0], transformed_data[:, 1], alpha=0.5, label="All data")
-    plt.arrow(0, 0, pc1, pc2, head_width=0.5, head_length=0.5, fc='black', ec='black', label="1st window PCA")
-    plt.title(f"2D PCA of {sensor_name} Data")
-    plt.xlabel("Principal Component 1")
-    plt.ylabel("Principal Component 2")
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+        # For visualization, we'll store one plot of original data and one with the principal components
+        original_data_for_plot = None 
+        pca_transformed_for_plot = []
+        explained_variances = []
 
-# Plot PCA for each sensor
-for sensor_name in windowed_sensor_data:
-    plot_pca(sensor_name, sensor_data[sensor_name], windowed_sensor_data)
+        for window in windows:
+            if len(window) < window_size:
+                continue  # Avoid processing windows that don't meet the desired size
+
+            print(f"Debug: window content: {window}")
+
+            pca_data, explained_variance = apply_pca(window)
+
+            # Assuming you want to keep all the transformed windows for this sensor
+            pca_transformed_for_plot.append(pca_data)
+            explained_variances.append(explained_variance)
+
+            # Storing only the first window for the original data plot
+            if original_data_for_plot is None:
+                original_data_for_plot = np.array(window)
+
+        # Now, we have the data needed for plotting
+        if pca_transformed_for_plot:
+            pca_results[sensor_type] = {
+                'original_data': original_data_for_plot,
+                'pca_data': pca_transformed_for_plot,
+                'explained_variance': explained_variances
+            }
+
+    # Once all data is processed, you can create visualizations
+    for sensor_type, results in pca_results.items():
+        print(f"Debug: Processing visualization for {sensor_type}...")  # Debug statement
+        # Plot the original data (just the first window, as you specified)
+        original_data_array = np.array(results['original_data'])
+
+        # Plot the original data (just the first window, as you specified)
+        plt.figure(figsize=(10, 5))
+        plt.title(f'Original Data for {sensor_type}')
+        plt.scatter(original_data_array[:, 0], original_data_array[:, 1])  # adjusted indexing here
+        plt.xlabel('Variable 1')
+        plt.ylabel('Variable 2')
+        plt.show()
+
+        # Plot the principal components for the first window
+        plt.figure(figsize=(10, 5))
+        plt.title(f'Principal Components for {sensor_type}')
+        plt.scatter(results['pca_data'][0][:, 0], results['pca_data'][0][:, 1], c='red', label='Principal Components')  # Only the first window
+
+        # If you want to overlay the original data points in the background of the PCA plot
+        plt.scatter(results['original_data'][:, 0], results['original_data'][:, 1], c='blue', alpha=0.5, label='Original Data')
+        
+        plt.xlabel('Principal Component 1')
+        plt.ylabel('Principal Component 2')
+        plt.legend()
+        plt.show()
+
+        # Output the explained variance
+        print(f'Explained variance for {sensor_type}: {results["explained_variance"][0]}')  # Only for the first window
+
+    # At this point, you might want to save 'pca_results' or return it for further processing.
+
+print("Debug: About to start processing sensor data...")  # Debug statement
+process_sensor_data(sensor_data)
