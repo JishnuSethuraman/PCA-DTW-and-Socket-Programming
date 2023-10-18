@@ -16,11 +16,30 @@ def calculate_dtw_with_early_abandoning(reference_window, other_windows, distanc
             distances.append(distance)
     return distances  # Return distances meeting criteria
 
+
+def calculate_dtw_between_series(series1, series2):
+    distance, _ = fastdtw(series1, series2, dist=euclidean)
+    return distance
+
+
+def calculate_dtw_between_series(series1, series2):
+    distance, _ = fastdtw(series1, series2, dist=euclidean)
+    return distance
+
 def main():
     window_size = 10  # Window size set
     distance_threshold = 50  # Distance threshold set
 
-    reduced_data_dict = get_reduced_data()  # Retrieve PCA data
+    reduced_data_dict, reduced_data_dict1 =  get_reduced_data() # Retrieve PCA data
+
+    if len(reduced_data_dict) == 0 or len(reduced_data_dict1) == 0:
+        print("One or both of the time series data are empty. Cannot perform DTW.")
+        return
+
+    # Calculate DTW between the two full series
+    dtw_distance = calculate_dtw_between_series(reduced_data_dict['accelerometer'], reduced_data_dict1['accelerometer'])
+
+    print(f"DTW distance between the two series: {dtw_distance}")
 
     for sensor_type, pca_data in reduced_data_dict.items():  # Iterate through sensors
 
