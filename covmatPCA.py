@@ -6,7 +6,6 @@ from sklearn.decomposition import PCA
 
 # Parsing the CSV and storing sensor data
 def parse_and_store_data(row, sensor_data_dict):
-    """Parse the CSV row and store sensor data."""
     payloads = json.loads(row['payload'].replace("'", '"'))
     for payload in payloads:
         sensor_type = payload['name']

@@ -22,11 +22,8 @@ def calculate_dtw_between_series(series1, series2):
     return distance
 
 
-def calculate_dtw_between_series(series1, series2):
-    distance, _ = fastdtw(series1, series2, dist=euclidean)
-    return distance
 
-def main():
+def calculate_dtw_features():
     window_size = 10  # Window size set
     distance_threshold = 50  # Distance threshold set
 
@@ -40,6 +37,8 @@ def main():
     dtw_distance = calculate_dtw_between_series(reduced_data_dict['accelerometer'], reduced_data_dict1['accelerometer'])
 
     print(f"DTW distance between the two series: {dtw_distance}")
+
+    dtw_feature_matrix = []
 
     for sensor_type, pca_data in reduced_data_dict.items():  # Iterate through sensors
 
@@ -60,8 +59,23 @@ def main():
             print(f"Minimum DTW distance: {min(dtw_distances)}")
             print(f"Maximum DTW distance: {max(dtw_distances)}")
             print(f"Average DTW distance: {sum(dtw_distances) / len(dtw_distances)}")
+            dtw_feature_matrix.append([
+                min(dtw_distances),
+                max(dtw_distances),
+                sum(dtw_distances) / len(dtw_distances)  # average distance
+            ])
 
-        print("-" * 30)  # Separator for readability
+        print("-" * 30)  # Separator
+    return np.array(dtw_feature_matrix)
+
+def main():
+    try:
+        feature_matrix = calculate_dtw_features()
+        print("DTW feature matrix calculated successfully.")
+        print(feature_matrix) # Print the feature matrix
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
 
 if __name__ == "__main__":
     main()  # Program entry point
